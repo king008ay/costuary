@@ -33,7 +33,7 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
+        
         .card-header {
             font-weight: 600;
             font-size: 1.35rem;
@@ -41,14 +41,16 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            border-left: 4px solid #3b82f6;
+            border-left: 8px solid #3b82f6;
             padding-left: 12px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            
+            /* 1. 背景正常显示在容器上 */
+            background: linear-gradient(135deg, #334055 0%, #2e3b5f 100%);
+            
+            /* 2. 文字设置为白色或浅色，确保在深色背景上清晰可见 */
+            color: #ffffff; 
         }
-
+        
         .sub {
             font-size: 0.75rem;
             color: #475569;
@@ -322,7 +324,7 @@
 
         footer {
             text-align: center;
-            font-size: 0.7rem;
+            font-size: 0.5rem;
             color: #94a3b8;
             margin-top: 8px;
         }
@@ -406,7 +408,7 @@
             <div style="flex:0 0 auto;"><button id="addFamilyBtn" class="primary">➕ 添加家庭</button></div>
         </div>
         <div id="familyListContainer"><div class="empty-tip">暂无家庭，请添加家庭及对应人数~</div></div>
-        <div class="sub">💡 按人头均摊：注意录入家庭的人数即为该家庭参与分摊的人数</div>
+        <div class="sub">💡 按人头均摊：录入家庭的人数即为该家庭参与分摊人数</div>
     </div>
 
     <div class="card">
