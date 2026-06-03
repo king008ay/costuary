@@ -358,7 +358,7 @@
         <div class="cloud-bar">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
                 <span style="font-weight:700;">☁️ 记账编号</span>
-                <input type="text" id="roomIdInput" class="room-input" placeholder="例如: 2025_五一旅行"  style="flex:2; min-width: 130px;">
+                <input type="text" id="roomIdInput" class="room-input" placeholder="例如: 2025_五一旅行" style="flex:2; min-width: 130px;">
                 <button id="joinRoomBtn" class="secondary" style="background:#eef2ff;">📡 同步云端</button>
                 <button id="pushToCloudBtn" class="sync-btn" style="background:#10b981;">💾 保存到云端</button>
             </div>
@@ -388,7 +388,7 @@
         <div id="familyListContainer">
             <div class="empty-tip">暂无家庭，请添加家庭及对应人数~</div>
         </div>
-        <div class="sub">💡 按人头均摊：每个家庭成员承担相同金额，最终按家庭结算多退少补。</div>
+        <div class="sub">💡 按人头均摊：注意录入家庭的人数即为该家庭参与分摊的人数</div>
     </div>
 
     <!-- 消费记录模块 -->
@@ -435,7 +435,7 @@
         </div>
         <div class="sub">✅ 规则：总消费 ÷ 总人数 = 人均应付 → 每个家庭净额 = 家庭已付总金额 − 家庭总应付</div>
     </div>
-    <footer>数据自动保存在本地浏览器 · 点击「保存到云端」所有人共享</footer>
+    <footer>数据自动保存在本地 · 点击「保存到云端」所有人共享 Version：1.0.0</footer>
 </div>
 
 <script>
@@ -462,7 +462,7 @@
     };
 
     // 当前记账编号（当前显示/编辑的账单名称）
-    let currentBillName = localStorage.getItem('current_bill_name') || "default_bill";
+    let currentBillName = localStorage.getItem('current_bill_name') || "";
     
     // 完整的云端数据结构缓存
     let cloudData = {
@@ -571,6 +571,12 @@
             } else {
                 // 账单不存在
                 setCloudStatus(`⚠️ 账单“${billName}”不存在，可保存到云端创建`, false);
+                appData = {
+                    families: [],
+                    expenses: [],
+                    nextFamilyId: 1,
+                    nextExpenseId: 1
+                };
                 return false;
             }
         } catch (err) {
@@ -646,6 +652,10 @@
             // 更新当前账单名称
             currentBillName = inputBillName;
             localStorage.setItem('current_bill_name', currentBillName);
+        } else {
+            // 账单不存在，清空本地数据
+            currentBillName = inputBillName;
+            localStorage.setItem('current_bill_name', currentBillName);
         }
         
         refreshUI();
@@ -677,6 +687,31 @@
             return false;
         }
     }
+    
+    // 清除所有本地存储数据（彻底清理）
+    function clearAllLocalData() {
+        // 清除当前账单的本地存储
+        if (currentBillName) {
+            localStorage.removeItem(`local_bill_${currentBillName}`);
+        }
+        // 清除账单名称记录
+        localStorage.removeItem('current_bill_name');
+        // 注意：不清除其他账单的本地数据，只清除当前操作的账单
+    }
+    
+    // 重置当前页面数据（清空界面数据）
+    function resetPageData() {
+        appData = {
+            families: [],
+            expenses: [],
+            nextFamilyId: 1,
+            nextExpenseId: 1
+        };
+        currentBillName = "";
+        roomIdInput.value = "";
+        localStorage.removeItem('current_bill_name');
+        refreshUI();
+    }
 
     // 修复nextId
     function ensureNextIds() {
@@ -688,20 +723,24 @@
 
     // 保存到本地
     function persistLocal() {
-        localStorage.setItem(`local_bill_${currentBillName}`, JSON.stringify(appData));
+        if (currentBillName) {
+            localStorage.setItem(`local_bill_${currentBillName}`, JSON.stringify(appData));
+        }
     }
     
     // 从本地加载
     function loadLocalBackup() {
-        const raw = localStorage.getItem(`local_bill_${currentBillName}`);
-        if (raw) {
-            try {
-                const saved = JSON.parse(raw);
-                if (saved.families && saved.expenses !== undefined) {
-                    appData = saved;
-                    ensureNextIds();
-                }
-            } catch(e) { console.warn(e); }
+        if (currentBillName) {
+            const raw = localStorage.getItem(`local_bill_${currentBillName}`);
+            if (raw) {
+                try {
+                    const saved = JSON.parse(raw);
+                    if (saved.families && saved.expenses !== undefined) {
+                        appData = saved;
+                        ensureNextIds();
+                    }
+                } catch(e) { console.warn(e); }
+            }
         }
     }
 
@@ -859,7 +898,7 @@
         }
 
         let html = `<div class="settlement-grid">`;
-        html += `<div style="margin-bottom: 12px; font-size:0.85rem; background:#eef2ff; padding:8px 12px; border-radius: 60px;">🧑‍🤝‍🧑 总人数: ${totalPeople}人 &nbsp;| 💰 总消费: ¥${totalAmount} &nbsp;| 👤 人均: ¥${perPersonAmount}</div>`;
+        html += `<div style="margin-bottom: 12px; font-size:0.85rem; background:#eef2ff; padding:8px 12px; border-radius: 60px;">🧑‍🤝‍🧑 分摊总人数: ${totalPeople}人 &nbsp;| 💰 总消费: ¥${totalAmount} &nbsp;| 👤 人均: ¥${perPersonAmount}</div>`;
 
         for (let fb of familyBalances) {
             let balanceVal = fb.balance;
@@ -961,35 +1000,25 @@
             if (password !== 'admin123') {
                 alert('密码错误，清除云端数据失败!');
                 // 仍然清除本地数据
-                appData = {
-                    families: [],
-                    expenses: [],
-                    nextFamilyId: 1,
-                    nextExpenseId: 1
-                };
+                clearAllLocalData();
+                resetPageData();
                 refreshUI();
                 return;
             } else {
                 // 清除云端当前账单数据
-                await clearCloudData();
-                // 清除本地数据
-                appData = {
-                    families: [],
-                    expenses: [],
-                    nextFamilyId: 1,
-                    nextExpenseId: 1
-                };
+                if (currentBillName) {
+                    await clearCloudData();
+                }
+                // 清除本地所有相关数据
+                clearAllLocalData();
+                resetPageData();
                 refreshUI();
-                alert('云端和本地数据已清除');
+                alert('云端和本地数据已彻底清除');
             }
         } else {
-            // 仅清除本地数据
-            appData = {
-                families: [],
-                expenses: [],
-                nextFamilyId: 1,
-                nextExpenseId: 1
-            };
+            // 仅清除本地数据（包括当前账单的本地存储和页面数据）
+            clearAllLocalData();
+            resetPageData();
             refreshUI();
         }
     }
@@ -1019,25 +1048,33 @@
 
     async function init() {
         // 设置输入框的初始值
-        roomIdInput.value = currentBillName;
+        if (currentBillName) {
+            roomIdInput.value = currentBillName;
+        } else {
+            roomIdInput.value = "";
+        }
         
         // 先加载本地备份
         loadLocalBackup();
         refreshUI();
         bindEvents();
         
-        // 尝试从云端同步当前账单
-        try {
-            await fetchCloudData();
-            if (cloudData.bills[currentBillName]) {
-                await loadBillFromCloud(currentBillName);
-                refreshUI();
-            } else {
-                setCloudStatus(`📝 账单“${currentBillName}” 不存在，保存可创建`, false);
+        // 尝试从云端同步当前账单（仅当有账单名称时）
+        if (currentBillName) {
+            try {
+                await fetchCloudData();
+                if (cloudData.bills[currentBillName]) {
+                    await loadBillFromCloud(currentBillName);
+                    refreshUI();
+                } else {
+                    setCloudStatus(`📝 账单“${currentBillName}” 不存在，保存可创建`, false);
+                }
+            } catch (err) {
+                console.warn("初始化同步失败:", err);
+                setCloudStatus("⚡ 离线模式，点击同步连接云端", false);
             }
-        } catch (err) {
-            console.warn("初始化同步失败:", err);
-            setCloudStatus("⚡ 离线模式，点击同步连接云端", false);
+        } else {
+            setCloudStatus("📝 请输入记账编号后保存创建账单", false);
         }
     }
     
