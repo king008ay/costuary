@@ -322,7 +322,7 @@
 
         footer {
             text-align: center;
-            font-size: 0.5rem;
+            font-size: 0.7rem;
             color: #94a3b8;
             margin-top: 8px;
         }
@@ -366,19 +366,16 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* 按钮禁用状态 */
         button:disabled {
             opacity: 0.6;
             transform: none !important;
             cursor: not-allowed;
         }
         
-        /* 输入框增强 */
         input:hover, select:hover {
             border-color: #94a3b8;
         }
         
-        /* 卡片悬浮效果 */
         .card:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
@@ -444,8 +441,8 @@
     let appData = { families: [], expenses: [], nextFamilyId: 1, nextExpenseId: 1 };
     let currentBillName = localStorage.getItem('current_bill_name') || "";
     let cloudData = { description: "用于记录出行旅游记账和拼账信息", bills: {} };
-    let localVersion = 0;      // 本地数据版本号
-    let cloudVersion = 0;      // 云端数据版本号
+    let localVersion = 0;
+    let cloudVersion = 0;
     
     const roomIdInput = document.getElementById('roomIdInput');
     const cloudStatusSpan = document.getElementById('cloudStatus');
@@ -460,6 +457,21 @@
     }
 
     function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+
+    // 获取排序后的消费列表
+    function getSortedExpenses() {
+        const expensesCopy = [...appData.expenses];
+        // 按家庭名称排序，同家庭内按时间倒序（最新在上）
+        expensesCopy.sort((a, b) => {
+            const familyA = appData.families.find(f => f.id === a.payerFamilyId);
+            const familyB = appData.families.find(f => f.id === b.payerFamilyId);
+            const nameA = familyA ? familyA.name : '';
+            const nameB = familyB ? familyB.name : '';
+            if (nameA !== nameB) return nameA.localeCompare(nameB);
+            return b.id - a.id;
+        });
+        return expensesCopy;
+    }
 
     async function fetchCloudData() {
         try {
@@ -483,23 +495,19 @@
         } catch (err) { console.error("保存云端数据失败:", err); throw err; }
     }
 
-    // 核心：带版本号的保存（乐观锁）
     async function saveBillToCloudWithVersion(billName, billData, expectedVersion) {
         setCloudStatus("正在保存到云端...", false, true);
         try {
             await fetchCloudData();
-            
             const currentVersion = cloudData.versions?.[billName] || 0;
             if (currentVersion !== expectedVersion) {
                 setCloudStatus(`⚠️ 云端账单已被其他人修改，请先同步后再保存`, true);
                 return { success: false, conflict: true, remoteVersion: currentVersion };
             }
-            
             cloudData.bills[billName] = JSON.parse(JSON.stringify(billData));
             cloudData.bills[billName].lastModified = new Date().toISOString();
             cloudData.versions = cloudData.versions || {};
             cloudData.versions[billName] = expectedVersion + 1;
-            
             await saveCloudData();
             localVersion = expectedVersion + 1;
             setCloudStatus(`✅ 已保存到云端 (账单: ${billName}) ${new Date().toLocaleTimeString()}`);
@@ -515,7 +523,6 @@
         try {
             await fetchCloudData();
             cloudVersion = cloudData.versions?.[billName] || 0;
-            
             if (cloudData.bills[billName]) {
                 const billData = cloudData.bills[billName];
                 appData = { families: billData.families || [], expenses: billData.expenses || [], nextFamilyId: billData.nextFamilyId || 1, nextExpenseId: billData.nextExpenseId || 1 };
@@ -539,10 +546,8 @@
     async function saveCurrentBillToCloud() {
         const inputBillName = roomIdInput.value.trim();
         if (!inputBillName) { alert("请先输入记账编号"); return false; }
-        
         const currentData = { families: JSON.parse(JSON.stringify(appData.families)), expenses: JSON.parse(JSON.stringify(appData.expenses)), nextFamilyId: appData.nextFamilyId, nextExpenseId: appData.nextExpenseId };
         const result = await saveBillToCloudWithVersion(inputBillName, currentData, localVersion);
-        
         if (result.conflict) {
             const confirmSync = confirm(`⚠️ 云端账单已被他人抢先更新,请先同步最新数据`);
             if (confirmSync) {
@@ -552,7 +557,6 @@
             }
             return false;
         }
-        
         if (result.success) {
             currentBillName = inputBillName;
             localStorage.setItem('current_bill_name', currentBillName);
@@ -564,7 +568,6 @@
     async function syncFromCloud() {
         const inputBillName = roomIdInput.value.trim();
         if (!inputBillName) { alert("请输入记账编号"); return false; }
-
         const success = await loadBillFromCloud(inputBillName);
         if (success) {
             currentBillName = inputBillName;
@@ -673,10 +676,21 @@
     function renderExpenseList() {
         const container = document.getElementById('expenseListContainer');
         if (!appData.expenses.length) { container.innerHTML = '<div class="empty-tip">暂无消费，添加第一笔账～</div>'; return; }
+        
+        const sortedExpenses = getSortedExpenses();
         let html = '';
-        [...appData.expenses].reverse().forEach(exp => {
+        let currentFamily = null;
+        
+        sortedExpenses.forEach(exp => {
             const family = appData.families.find(f => f.id === exp.payerFamilyId);
             const familyName = family ? family.name : `家庭(ID:${exp.payerFamilyId})`;
+            
+            // 按家庭排序时，添加家庭分隔标题
+            if (currentFamily !== familyName) {
+                currentFamily = familyName;
+                html += `<div style="font-size:0.7rem; color:#3b82f6; padding: 8px 0 4px 4px; background: linear-gradient(135deg, #eef2ff, #ffffff); border-radius: 12px; margin-top: 4px;"><span style="font-weight:600;">🏠 ${escapeHtml(familyName)}</span> 的消费</div>`;
+            }
+            
             html += `<div class="expense-item"><div class="expense-detail"><strong>${escapeHtml(exp.description)}</strong><br><span style="font-size:0.75rem;">💰 ${exp.amount}元 · 买单: ${escapeHtml(familyName)}</span></div><div class="delete-icon" data-expense-id="${exp.id}" data-expense-desc="${escapeHtml(exp.description)}" data-action="delExpense">❌</div></div>`;
         });
         container.innerHTML = html;
