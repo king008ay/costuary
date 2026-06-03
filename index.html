@@ -31,6 +31,7 @@
             margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .card-header {
@@ -89,45 +90,105 @@
         input:focus, select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            transform: scale(1.01);
+        }
+
+        input:active, select:active {
+            transform: scale(0.99);
         }
 
         button {
             background: #f8fafc;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        button:active::after {
+            width: 120%;
+            height: 120%;
         }
 
         button.primary {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             border: none;
             color: white;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+        }
+
+        button.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
         }
 
         button.primary:active {
             transform: scale(0.96);
+            box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
         }
 
         button.danger {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             border: none;
             color: white;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+        }
+
+        button.danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
         }
 
         button.danger:active {
             transform: scale(0.96);
+            box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
         }
 
         button.secondary {
             background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
             border: 1px solid #cbd5e1;
             color: #1e293b;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button.secondary:hover {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            transform: translateY(-1px);
+        }
+
+        button.secondary:active {
+            transform: scale(0.96);
         }
 
         button.sync-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             border: none;
             color: white;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+        }
+
+        button.sync-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        button.sync-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
         }
 
         .family-item, .expense-item {
@@ -141,6 +202,13 @@
             flex-wrap: wrap;
             gap: 8px;
             border: 1px solid #eef2ff;
+            transition: all 0.2s ease;
+        }
+
+        .family-item:hover, .expense-item:hover {
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transform: translateX(2px);
         }
 
         .family-info {
@@ -164,11 +232,17 @@
             font-size: 1.2rem;
             padding: 4px 8px;
             border-radius: 30px;
+            transition: all 0.2s ease;
         }
 
         .delete-icon:hover {
             background: #fee2e2;
             color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        .delete-icon:active {
+            transform: scale(0.95);
         }
 
         .settlement-grid {
@@ -183,6 +257,13 @@
             align-items: baseline;
             padding: 12px 8px;
             border-bottom: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .family-result:hover {
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 12px;
+            padding-left: 12px;
         }
 
         .family-result:last-child {
@@ -196,6 +277,7 @@
             padding: 4px 12px;
             border-radius: 40px;
             font-size: 0.85rem;
+            transition: all 0.2s ease;
         }
 
         .pay {
@@ -205,6 +287,7 @@
             padding: 4px 12px;
             border-radius: 40px;
             font-size: 0.85rem;
+            transition: all 0.2s ease;
         }
 
         .neutral {
@@ -239,7 +322,7 @@
 
         footer {
             text-align: center;
-            font-size: 0.7rem;
+            font-size: 0.5rem;
             color: #94a3b8;
             margin-top: 8px;
         }
@@ -268,6 +351,7 @@
             border-radius: 40px;
             color: #2c7a4a;
             font-weight: 500;
+            transition: all 0.2s ease;
         }
         .sync-spin {
             display: inline-block;
@@ -282,24 +366,22 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        .conflict-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+        /* 按钮禁用状态 */
+        button:disabled {
+            opacity: 0.6;
+            transform: none !important;
+            cursor: not-allowed;
         }
-        .conflict-content {
-            background: white;
-            border-radius: 32px;
-            padding: 24px;
-            max-width: 300px;
-            text-align: center;
+        
+        /* 输入框增强 */
+        input:hover, select:hover {
+            border-color: #94a3b8;
+        }
+        
+        /* 卡片悬浮效果 */
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
         }
     </style>
 </head>
@@ -309,7 +391,7 @@
         <div class="cloud-bar">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
                 <span style="font-weight:700;">☁️ 记账编号</span>
-                <input type="text" id="roomIdInput" class="room-input" placeholder="例如: 2026_五一旅行" style="flex:2; min-width: 130px;">
+                <input type="text" id="roomIdInput" class="room-input" placeholder="例如: 2025_五一旅行" style="flex:2; min-width: 130px;">
                 <button id="joinRoomBtn" class="secondary" style="background:#eef2ff;">📡 同步账单</button>
                 <button id="pushToCloudBtn" class="sync-btn" style="background:#10b981;">💾 保存到云端</button>
             </div>
