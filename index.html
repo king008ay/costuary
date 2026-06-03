@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>拼账助手 · 云端同步版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f1f5f9;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px 16px 48px;
+            color: #0f172a;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            font-weight: 600;
+            font-size: 1.35rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+        }
+
+        .sub {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 110px;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #334155;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input, select, button {
+            font-size: 0.95rem;
+            padding: 10px 12px;
+            border-radius: 60px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            width: 100%;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+        }
+
+        button {
+            background: #f8fafc;
+            cursor: pointer;
+            font-weight: 500;
+            border: 1px solid #cbd5e1;
+        }
+
+        button.primary {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        button.primary:active {
+            background: #2563eb;
+            transform: scale(0.97);
+        }
+
+        button.danger {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        button.secondary {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        button.sync-btn {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .family-item, .expense-item {
+            background: #f9fafb;
+            border-radius: 20px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .family-info {
+            font-weight: 500;
+        }
+
+        .family-count {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 4px;
+        }
+
+        .expense-detail {
+            flex: 2;
+            font-size: 0.9rem;
+        }
+
+        .expense-amount {
+            font-weight: 700;
+        }
+
+        .delete-icon {
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: 30px;
+            transition: background 0.2s;
+        }
+
+        .delete-icon:active {
+            background: #e2e8f0;
+        }
+
+        .settlement-grid {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 12px;
+        }
+
+        .family-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .family-result:last-child {
+            border-bottom: none;
+        }
+
+        .recv {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .pay {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .neutral {
+            color: #475569;
+        }
+
+        .total-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            text-align: left;
+            border-top: 1px dashed #cbd5e1;
+            font-weight: 500;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #94a3b8;
+            padding: 24px 0;
+            font-size: 0.85rem;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 16px;
+        }
+
+        .cloud-bar {
+            background: #e6f7ec;
+            border-radius: 60px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .room-input {
+            flex: 2;
+            min-width: 130px;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 40px;
+            color: #2c7a4a;
+        }
+        .sync-spin {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #10b981;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 云端协同工具条 -->
+    <div class="card" style="padding: 12px 16px;">
+        <div class="cloud-bar">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
+                <span style="font-weight:500;">☁️ 记账编号</span>
+                <input type="text" id="roomIdInput" class="room-input" placeholder="例如: id123 （不支持中文）" value="family_trip_demo" style="flex:2; min-width: 130px;">
+                <button id="joinRoomBtn" class="secondary" style="background:#eef2ff;">📡 同步云端</button>
+                <button id="pushToCloudBtn" class="sync-btn" style="background:#10b981;">💾 保存到云端</button>
+            </div>
+            <div id="cloudStatus" class="status-badge" style="margin-top: 8px; width: 100%; text-align: center;">⚡ 未同步</div>
+        </div>
+        <div class="sub">📌 【记账编号】用于标识某次活动的账单</div>
+    </div>
+
+    <!-- 家庭管理模块 -->
+    <div class="card">
+        <div class="card-header">
+            <span>🏠</span> 家庭 & 人数
+        </div>
+        <div class="form-row">
+            <div class="input-group">
+                <label>家庭名称</label>
+                <input type="text" id="familyName" placeholder="例如: 1号家庭">
+            </div>
+            <div class="input-group">
+                <label>人数</label>
+                <input type="number" id="familyPeople" placeholder="成员数量" min="1" step="1">
+            </div>
+            <div style="flex: 0 0 auto;">
+                <button id="addFamilyBtn" class="primary">➕ 添加家庭</button>
+            </div>
+        </div>
+        <div id="familyListContainer">
+            <div class="empty-tip">暂无家庭，请添加家庭及对应人数~</div>
+        </div>
+        <div class="sub">💡 按人头均摊：每个家庭成员承担相同金额，最终按家庭结算多退少补。</div>
+    </div>
+
+    <!-- 消费记录模块 -->
+    <div class="card">
+        <div class="card-header">
+            <span>🧾</span> 消费流水
+        </div>
+        <div class="form-row">
+            <div class="input-group">
+                <label>消费项目</label>
+                <input type="text" id="expenseDesc" placeholder="午饭/门票/水果">
+            </div>
+            <div class="input-group">
+                <label>金额(元)</label>
+                <input type="number" id="expenseAmount" placeholder="0.00" step="1" value="">
+            </div>
+            <div class="input-group">
+                <label>买单家庭</label>
+                <select id="payerFamilySelect">
+                    <option value="">请先添加家庭</option>
+                </select>
+            </div>
+            <div style="flex: 0 0 auto;">
+                <button id="addExpenseBtn" class="primary">➕ 记一笔</button>
+            </div>
+        </div>
+        <div id="expenseListContainer">
+            <div class="empty-tip">暂无消费，添加第一笔账～</div>
+        </div>
+        <div class="total-section">📌 出 行 开 始 随 心 记</div>
+    </div>
+
+    <!-- 结算面板 -->
+    <div class="card">
+        <div class="card-header">
+            <span>⚖️</span> 最终结算 (各家庭应收/应付)
+        </div>
+        <div id="settlementPanel">
+            <div class="empty-tip">请添加家庭和消费后查看结算</div>
+        </div>
+        <div class="btn-group">
+            <button id="clearAllBtn" class="danger">🗑️ 清除全部数据</button>
+            <button id="refreshSettleBtn" class="secondary">🔄 刷新结算</button>
+        </div>
+        <div class="sub">✅ 规则：总消费 ÷ 总人数 = 人均应付 → 每个家庭净额 = 家庭已付总金额 − 家庭总应付</div>
+    </div>
+    <footer>数据自动保存在本地浏览器 · 点击「保存到云端」所有人共享</footer>
+</div>
+
+<script>
+    // ----------------------------- JSONBin 配置 ---------------------------------
+    const API_KEY = "$2a$10$L2kKeQ900H8.O7eEmkrD..9rwYhyOssK1Sk1MRgFFF/DgH7dVs3Qe";
+    const BIN_BASE_URL = "https://api.jsonbin.io/v3/b";
+    
+    // 全局数据模型 (与原版完全一致)
+    let appData = {
+        families: [],
+        expenses: [],
+        nextFamilyId: 1,
+        nextExpenseId: 1
+    };
+
+    // 当前记账编号
+    let currentRoomId = localStorage.getItem('last_room_id') || "family_trip_demo";
+    // 当前bin的ID (存储映射)
+    let currentBinId = localStorage.getItem(`bin_id_${currentRoomId}`) || null;
+
+    // DOM 元素
+    const roomIdInput = document.getElementById('roomIdInput');
+    const cloudStatusSpan = document.getElementById('cloudStatus');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const pushToCloudBtn = document.getElementById('pushToCloudBtn');
+
+    // 辅助：显示同步状态
+    function setCloudStatus(text, isError = false, isLoading = false) {
+        if (isLoading) {
+            cloudStatusSpan.innerHTML = '<span class="sync-spin"></span> ' + text;
+        } else {
+            cloudStatusSpan.innerHTML = text;
+        }
+        cloudStatusSpan.style.background = isError ? '#fee2e2' : '#e6f7ec';
+        cloudStatusSpan.style.color = isError ? '#b91c1c' : '#2c7a4a';
+    }
+
+    // 防XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ---------------------------------- 核心数据操作 -----------------------------------
+    function persistData() {
+        localStorage.setItem('family_trip_simple', JSON.stringify(appData));
+    }
+
+    function loadLocalBackup() {
+        const raw = localStorage.getItem('family_trip_simple');
+        if (raw) {
+            try {
+                const saved = JSON.parse(raw);
+                if (saved.families && saved.expenses !== undefined) {
+                    appData = saved;
+                    if (!appData.nextFamilyId) appData.nextFamilyId = (Math.max(0, ...appData.families.map(f => f.id), 0) + 1);
+                    if (!appData.nextExpenseId) appData.nextExpenseId = (Math.max(0, ...appData.expenses.map(e => e.id), 0) + 1);
+                }
+            } catch(e) { console.warn(e); }
+        }
+    }
+
+    // 修复nextId
+    function ensureNextIds() {
+        const maxFid = appData.families.length ? Math.max(...appData.families.map(f => f.id), 0) : 0;
+        const maxEid = appData.expenses.length ? Math.max(...appData.expenses.map(e => e.id), 0) : 0;
+        if (appData.nextFamilyId <= maxFid) appData.nextFamilyId = maxFid + 1;
+        if (appData.nextExpenseId <= maxEid) appData.nextExpenseId = maxEid + 1;
+    }
+
+    // 刷新所有UI组件
+    function refreshUI() {
+        renderFamilyList();
+        renderFamilySelect();
+        renderExpenseList();
+        renderSettlement();
+        persistData();
+        ensureNextIds();
+    }
+
+    // 渲染家庭列表
+    function renderFamilyList() {
+        const container = document.getElementById('familyListContainer');
+        if (!appData.families.length) {
+            container.innerHTML = '<div class="empty-tip">暂无家庭，请添加家庭及对应人数~</div>';
+            return;
+        }
+        let html = '';
+        appData.families.forEach(family => {
+            html += `
+                <div class="family-item">
+                    <div>
+                        <div class="family-info">🏷️ ${escapeHtml(family.name)}</div>
+                        <div class="family-count">👥 ${family.peopleCount} 人</div>
+                    </div>
+                    <div class="delete-icon" data-family-id="${family.id}" data-action="delFamily">🗑️</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        document.querySelectorAll('[data-action="delFamily"]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const familyId = parseInt(el.getAttribute('data-family-id'));
+                deleteFamilyById(familyId);
+            });
+        });
+    }
+
+    function deleteFamilyById(familyId) {
+        if (!confirm('⚠️ 删除家庭将会同时删除该家庭的所有消费记录，确定吗？')) return;
+        appData.families = appData.families.filter(f => f.id !== familyId);
+        appData.expenses = appData.expenses.filter(e => e.payerFamilyId !== familyId);
+        refreshUI();
+    }
+
+    function renderFamilySelect() {
+        const select = document.getElementById('payerFamilySelect');
+        if (!select) return;
+        let options = '<option value="">-- 选择买单家庭 --</option>';
+        for (let family of appData.families) {
+            options += `<option value="${family.id}">${escapeHtml(family.name)} (${family.peopleCount}人)</option>`;
+        }
+        if (appData.families.length === 0) {
+            options = '<option value="">请先添加家庭</option>';
+        }
+        select.innerHTML = options;
+    }
+
+    function renderExpenseList() {
+        const container = document.getElementById('expenseListContainer');
+        if (!appData.expenses.length) {
+            container.innerHTML = '<div class="empty-tip">暂无消费，添加第一笔账～</div>';
+            return;
+        }
+        let html = '';
+        [...appData.expenses].reverse().forEach(exp => {
+            const family = appData.families.find(f => f.id === exp.payerFamilyId);
+            const familyName = family ? family.name : `家庭(ID:${exp.payerFamilyId})`;
+            html += `
+                <div class="expense-item">
+                    <div class="expense-detail">
+                        <strong>${escapeHtml(exp.description)}</strong><br>
+                        <span style="font-size:0.75rem;">💰 ${exp.amount}元 · 买单: ${escapeHtml(familyName)}</span>
+                    </div>
+                    <div class="delete-icon" data-expense-id="${exp.id}" data-expense-desc="${escapeHtml(exp.description)}" data-action="delExpense">❌</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        document.querySelectorAll('[data-action="delExpense"]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const expenseId = parseInt(el.getAttribute('data-expense-id'));
+                const expenseDesc = el.getAttribute('data-expense-desc') || '这笔消费';
+                if (confirm(`确定要删除消费记录“${expenseDesc}”吗？\n删除后无法恢复。`)) {
+                    deleteExpenseById(expenseId);
+                }
+            });
+        });
+    }
+
+    function deleteExpenseById(expenseId) {
+        appData.expenses = appData.expenses.filter(e => e.id !== expenseId);
+        refreshUI();
+    }
+
+    function computeSettlement() {
+        if (appData.families.length === 0) {
+            return { familyBalances: [], totalAmount: 0, totalPeople: 0, perPersonAmount: 0 };
+        }
+        let totalPeople = 0;
+        for (let f of appData.families) {
+            totalPeople += f.peopleCount;
+        }
+        if (totalPeople === 0) return { familyBalances: [], totalAmount: 0, totalPeople: 0, perPersonAmount: 0 };
+
+        let totalExpense = 0;
+        for (let exp of appData.expenses) {
+            totalExpense += exp.amount;
+        }
+        const perPersonShare = totalExpense / totalPeople;
+
+        let familyPaid = new Map();
+        for (let exp of appData.expenses) {
+            const fid = exp.payerFamilyId;
+            familyPaid.set(fid, (familyPaid.get(fid) || 0) + exp.amount);
+        }
+
+        let familyBalances = [];
+        for (let family of appData.families) {
+            const peopleCnt = family.peopleCount;
+            const shouldPayTotal = peopleCnt * perPersonShare;
+            const paidTotal = familyPaid.get(family.id) || 0;
+            const net = paidTotal - shouldPayTotal;
+            familyBalances.push({
+                familyId: family.id,
+                familyName: family.name,
+                peopleCount: peopleCnt,
+                balance: Math.round(net * 100) / 100,
+                paidTotal: Math.round(paidTotal * 100) / 100,
+                shouldPayTotal: Math.round(shouldPayTotal * 100) / 100
+            });
+        }
+        return {
+            familyBalances,
+            totalAmount: Math.round(totalExpense * 100) / 100,
+            totalPeople,
+            perPersonAmount: Math.round(perPersonShare * 100) / 100
+        };
+    }
+
+    function renderSettlement() {
+        const container = document.getElementById('settlementPanel');
+        const settlement = computeSettlement();
+        const { familyBalances, totalAmount, totalPeople, perPersonAmount } = settlement;
+
+        if (appData.families.length === 0) {
+            container.innerHTML = '<div class="empty-tip">请先添加家庭数据</div>';
+            return;
+        }
+        if (appData.expenses.length === 0) {
+            container.innerHTML = '<div class="empty-tip">暂无消费流水，添加一笔后自动计算均摊</div>';
+            return;
+        }
+
+        let html = `<div class="settlement-grid">`;
+        html += `<div style="margin-bottom: 12px; font-size:0.85rem; background:#eef2ff; padding:8px 12px; border-radius: 60px;">🧑‍🤝‍🧑 总人数: ${totalPeople}人 &nbsp;| 💰 总消费: ¥${totalAmount} &nbsp;| 👤 人均: ¥${perPersonAmount}</div>`;
+
+        for (let fb of familyBalances) {
+            let balanceVal = fb.balance;
+            let statusText = '';
+            let statusClass = '';
+            if (balanceVal > 0) {
+                statusText = `应收 ¥${balanceVal.toFixed(2)}`;
+                statusClass = 'recv';
+            } else if (balanceVal < 0) {
+                statusText = `应付 ¥${Math.abs(balanceVal).toFixed(2)}`;
+                statusClass = 'pay';
+            } else {
+                statusText = `持平`;
+                statusClass = 'neutral';
+            }
+            html += `
+                <div class="family-result">
+                    <span><strong>${escapeHtml(fb.familyName)}</strong> (${fb.peopleCount}人) 
+                    <span style="font-size:0.7rem; color:#475569;"> 已付:¥${fb.paidTotal} / 应付:¥${fb.shouldPayTotal}</span></span>
+                    <span class="${statusClass}">${statusText}</span>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    // 添加家庭
+    function addFamily() {
+        let familyName = document.getElementById('familyName').value.trim();
+        let peopleCountRaw = document.getElementById('familyPeople').value;
+        if (!familyName) {
+            alert('请输入家庭名称');
+            return;
+        }
+        let peopleCount = parseInt(peopleCountRaw);
+        if (isNaN(peopleCount) || peopleCount <= 0) {
+            alert('人数必须是大于0的整数');
+            return;
+        }
+        const exists = appData.families.some(f => f.name === familyName);
+        if (exists) {
+            if (!confirm(`家庭“${familyName}”已存在，继续添加可能会混淆，确定要添加吗？`)) return;
+        }
+        const newId = appData.nextFamilyId++;
+        appData.families.push({
+            id: newId,
+            name: familyName,
+            peopleCount: peopleCount
+        });
+        document.getElementById('familyName').value = '';
+        document.getElementById('familyPeople').value = '1';
+        refreshUI();
+    }
+
+    function addExpense() {
+        if (appData.families.length === 0) {
+            alert('请先添加家庭');
+            return;
+        }
+        const desc = document.getElementById('expenseDesc').value.trim();
+        const amountRaw = document.getElementById('expenseAmount').value;
+        const payerFamilyIdRaw = document.getElementById('payerFamilySelect').value;
+        if (!desc) {
+            alert('请输入消费项目');
+            return;
+        }
+        if (!amountRaw || isNaN(parseFloat(amountRaw)) || parseFloat(amountRaw) <= 0) {
+            alert('请输入有效金额 (>0)');
+            return;
+        }
+        if (!payerFamilyIdRaw) {
+            alert('请选择买单家庭');
+            return;
+        }
+        const amount = parseFloat(amountRaw);
+        const payerFamilyId = parseInt(payerFamilyIdRaw);
+        const familyExists = appData.families.some(f => f.id === payerFamilyId);
+        if (!familyExists) {
+            alert('买单家庭不存在，请重新选择');
+            renderFamilySelect();
+            return;
+        }
+        const newExpenseId = appData.nextExpenseId++;
+        appData.expenses.push({
+            id: newExpenseId,
+            description: desc,
+            amount: amount,
+            payerFamilyId: payerFamilyId
+        });
+        document.getElementById('expenseDesc').value = '';
+        document.getElementById('expenseAmount').value = '';
+        refreshUI();
+    }
+
+    function clearAllData() {
+        if (confirm('⚠️ 清除后将永久删除所有家庭、人数和消费记录，且无法恢复。确定吗？')) {
+            appData = {
+                families: [],
+                expenses: [],
+                nextFamilyId: 1,
+                nextExpenseId: 1
+            };
+            refreshUI();
+        }
+    }
+
+    // ----------------------------- JSONBin 云端操作 (修复版) -----------------------------
+    
+    // 创建新的 Bin
+    async function createBin() {
+        const room = currentRoomId.trim();
+        const response = await fetch(BIN_BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': API_KEY,
+                'X-Bin-Name': `travel_${room}`
+            },
+            body: JSON.stringify(appData)
+        });
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`创建失败: ${response.status} ${error}`);
+        }
+        const result = await response.json();
+        return result.metadata.id;
+    }
+
+    // 更新已有 Bin
+    async function updateBin(binId) {
+        const response = await fetch(`${BIN_BASE_URL}/${binId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': API_KEY
+            },
+            body: JSON.stringify(appData)
+        });
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`更新失败: ${response.status} ${error}`);
+        }
+        return true;
+    }
+
+    // 保存当前 appData 到云端
+    async function saveToCloud() {
+        const room = currentRoomId.trim();
+        if (!room) {
+            alert("请先输入记账编号");
+            return false;
+        }
+        
+        setCloudStatus("正在保存到云端...", false, true);
+        
+        try {
+            let binId = localStorage.getItem(`bin_id_${room}`);
+            
+            if (!binId) {
+                // 尝试通过名称查找是否存在 (可选，简化逻辑：直接创建)
+                // 为了简单可靠，先尝试创建新bin
+                setCloudStatus("创建云端记账编号...", false, true);
+                binId = await createBin();
+                localStorage.setItem(`bin_id_${room}`, binId);
+                currentBinId = binId;
+                setCloudStatus(`✅ 已保存到云端 (新记账编号) ${new Date().toLocaleTimeString()}`);
+                return true;
+            } else {
+                // 更新已有bin
+                await updateBin(binId);
+                setCloudStatus(`✅ 已保存到云端 (记账编号) ${new Date().toLocaleTimeString()}`);
+                return true;
+            }
+        } catch (err) {
+            console.error("保存失败:", err);
+            setCloudStatus(`❌ 保存失败: ${err.message}`, true);
+            return false;
+        }
+    }
+
+    // 从云端拉取数据
+    async function fetchFromCloud() {
+        const room = currentRoomId.trim();
+        if (!room) {
+            alert("请输入记账编号");
+            return false;
+        }
+        
+        setCloudStatus("正在从云端同步...", false, true);
+        
+        try {
+            let binId = localStorage.getItem(`bin_id_${room}`);
+            
+            if (!binId) {
+                setCloudStatus("⚠️ 该记账编号尚无云端数据，请先在其他设备保存一次", false);
+                return false;
+            }
+            
+            const response = await fetch(`${BIN_BASE_URL}/${binId}/latest`, {
+                headers: { 'X-Master-Key': API_KEY }
+            });
+            
+            if (response.status === 404) {
+                // bin不存在，清除本地存储的binId
+                localStorage.removeItem(`bin_id_${room}`);
+                setCloudStatus("❌ 云端记账编号不存在，请重新保存", true);
+                return false;
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            const remoteData = result.record;
+            
+            if (remoteData && (remoteData.families !== undefined || remoteData.expenses !== undefined)) {
+                // 覆盖本地数据
+                appData = {
+                    families: remoteData.families || [],
+                    expenses: remoteData.expenses || [],
+                    nextFamilyId: remoteData.nextFamilyId || 1,
+                    nextExpenseId: remoteData.nextExpenseId || 1
+                };
+                ensureNextIds();
+                refreshUI();
+                setCloudStatus(`✅ 同步成功 ${new Date().toLocaleTimeString()}`);
+                return true;
+            } else {
+                setCloudStatus("⚠️ 云端数据为空", false);
+                return false;
+            }
+        } catch (err) {
+            console.error("拉取失败:", err);
+            setCloudStatus(`❌ 同步失败: ${err.message}`, true);
+            return false;
+        }
+    }
+
+    // 切换/同步房间
+    async function syncRoom() {
+        const newRoom = roomIdInput.value.trim();
+        if (!newRoom) {
+            alert("记账编号不能为空");
+            return;
+        }
+        
+        if (newRoom !== currentRoomId) {
+            // 切换房间
+            currentRoomId = newRoom;
+            localStorage.setItem('last_room_id', currentRoomId);
+            currentBinId = localStorage.getItem(`bin_id_${currentRoomId}`) || null;
+            
+            // 尝试拉取云端数据
+            const success = await fetchFromCloud();
+            if (!success) {
+                // 如果没有云端数据，询问是否保存当前数据
+                if (confirm(`记账编号“${currentRoomId}”尚无云端数据，是否将当前本地数据作为初始数据保存到云端？\n（家人使用相同记账编号即可同步）`)) {
+                    await saveToCloud();
+                }
+            }
+        } else {
+            // 相同记账编号，直接拉取最新
+            await fetchFromCloud();
+        }
+        refreshUI();
+    }
+
+    // ----------------------------- 初始化 & 事件绑定 -----------------------------
+    function bindEvents() {
+        document.getElementById('addFamilyBtn').addEventListener('click', addFamily);
+        document.getElementById('addExpenseBtn').addEventListener('click', addExpense);
+        document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+        document.getElementById('refreshSettleBtn').addEventListener('click', () => refreshUI());
+        joinRoomBtn.addEventListener('click', syncRoom);
+        pushToCloudBtn.addEventListener('click', saveToCloud);
+        
+        const expenseAmount = document.getElementById('expenseAmount');
+        if (expenseAmount) expenseAmount.addEventListener('keypress', (e) => { if (e.key === 'Enter') addExpense(); });
+        const familyPeople = document.getElementById('familyPeople');
+        if (familyPeople) familyPeople.addEventListener('keypress', (e) => { if (e.key === 'Enter') addFamily(); });
+    }
+
+    function init() {
+        loadLocalBackup();
+        ensureNextIds();
+        roomIdInput.value = currentRoomId;
+        refreshUI();
+        bindEvents();
+        // 自动尝试拉取一次（如果已有记账编号bin）
+        setTimeout(() => {
+            if (localStorage.getItem(`bin_id_${currentRoomId}`)) {
+                fetchFromCloud().catch(console.warn);
+            }
+        }, 300);
+    }
+    init();
+</script>
+</body>
+</html>
